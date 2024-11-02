@@ -57,26 +57,27 @@ if (!require("pheatmap", quietly = TRUE))
 
 # Abstract
 
-Esta actividad se corresponde con la prueba de evaluación continua (PEC1) de la asignatura de análisis de datos ómicos. Esta práctica permitirá la consolidación de los conocimientos adquiridos hasta el momento acerca de las ómicas así como su manejo bioinformático con Bioconductor.
+Esta actividad se corresponde con la prueba de evaluación continua (PEC1) de la asignatura de análisis de datos ómicos. 
 
-El objetivo de esta PEC es la planificación y ejecución del proceso de análisis básico de datos ómicos, mediante el uso de las herramientas y métodos vistos hasta el momento donde se demuestra un conocimiento teórico básico de las tecnologías ómicas y las posible y diversas herramientas informáticas disponibles (Bioconductor, R, etc.).
+Esta práctica permitirá la consolidación de los conocimientos adquiridos hasta el momento acerca de las ómicas así como su manejo bioinformático con Bioconductor haciendo uso del objeto **SummarizedExperiment**.
 
-Para ello, se resuelve un ejercicio que consiste en analizar un dataset elegido la azahar de entre los proporcionados el cual ha sido descargado a RStudio de manera automatica con codigos al efecto.
+Esta PEC desarrolla la planificación y ejecución del proceso de análisis básico de datos ómicos, mediante el uso de las herramientas y métodos vistos hasta el momento donde se demuestra un conocimiento teórico básico de las tecnologías ómicas y las posible / diversas herramientas informáticas disponibles (Bioconductor, R, etc.). Para ello, se resuelve un ejercicio que consiste en analizar un dataset elegido la azahar de entre los proporcionados, el cual ha sido descargado a RStudio de manera automática con los códigos R generados al efecto.
 
-A partir del archivo proporcionado ‘Geodatasets_updatedNov2022.xlx’ nos permite acceder a unos datos de expresión de la base de datos Gene Expression Omnibus (GEO). En mi caso escogí el artículo con el identificador GDS2107 que corresponde al estudio ‘Long-therm ethanol consumption alters pancreatic gene exxpression in rats: a possible connection to pancreatic injury’ (doi:10.1097/01.mpa.0000226878.81377.94. PMID: 16804415). Mediante herramientas que veremos posteriormente en R accedimos a la página del estudio en pubmed para indagar más sobre el estudio y ponernos en contexto, esto nos ayudará a la comprensión de resultados y a obtener buenas conclusiones.
-En el estudio se evalúa los daños del páncreas relacionados con el consumo de etanol. Para ello, se realizo un análisis de perfil genético que pudiese dislucidar el mecanismo responsible de la sensibilización del páncreas posterior al consumo de etanol. Para ello los animales fueron alimentados por una dieta con etanol y una dieta control, después de 8 semanas se midió la expresión de ARN pancreático utilizando la herramienta Affimetrix GeneChips que evaluó los cambios en genes específicos mediante la reacción en cadena cuantitativa de la polimerasa con transcriptasa inversa. Los resultados verificaron que el consumo de etanol a largo plazo causó una alteración significativa de la expresión génica pancreática. En términos bioquímicos se observó una activación del factor de transcripción 3, la proteína de choque térmico 70, la proteína de choque térmico 27 y el mesotripsinógeno aumentaron mientras que la proteína asociada a la pancreatitis, el portador de folato y la metalotioneína disminuyeron. En conclusión, se verificó que múltiples genes están influenciados por la alimentación con etanol a largo plazo y cuyos genes pueden explicar una relación entre el abuso de etanol y la enfermedad pancreática, pudiendose conducir a posibles enfoques preventivos o terapéutico.
+El dataset seleccionado ‘GastricCancer_NMR.xlsx’viene del estudio publicado por @Broadhurst, donde se  investiga si el cáncer gástrico (GC) tiene un perfil metabolómico urinario distintivo en comparación con enfermedades gástricas benignas (BN) y personas sanas (HE). Con los datos proporcionados se construye el objeto **SummarizedExperiment**. Según el estudio se identificaron 77 metabolitos reproducibles con aplicaron de análisis estadísticos univariantes y multivariantes junto con la generación de un modelo de regresión logística LASSO para la selección de los metabolitos clave (en este caso el "urinario"), @Broadhurst. 
 
-# Objetivos y presentacion de la PEC
+En nuestro caso hemos desarrollado los puntos referentes a la selección, descarga y análisis exploratorio del dataset.
+
+# Objetivos 
 
 El objetivo de esta PEC es la planificación y ejecución del proceso de análisis básico de datos ómicos, mediante el uso de las herramientas y métodos vistos hasta el momento. 
 
-Se busca obtener un conocimiento teórico básico de las tecnologías ómicas y las posible y diversas herramientas disponibles para trabajar con ellas como la librería Bioconductor y sus contenedores ómicos al efecto (en nuestro caso **SummarizedExperiment**), los gestores de control de versiones como github, las herramientas de exploración de datos dentro del paraguas del lenguaje R como lenguaje de programación con el que hemos realizado todo el proceso.
+Se busca obtener un conocimiento teórico básico de las tecnologías ómicas y las posibles / diversas herramientas disponibles para trabajar con ellas como la librería Bioconductor y sus contenedores ómicos al efecto (en nuestro caso **SummarizedExperiment**), los gestores de control de versiones como github y las herramientas de exploración de datos dentro del paraguas del lenguaje R, con el que hemos realizado todo el proceso.
 
-# Materiales y Métodos
+# Materiales y métodos
 
-Los datos con los que hemos tratado en esta PEC son de carácter metabolómico y en nuestro caso son accesibles desde el repositorio proporcionado [github](https://github.com/nutrimetabolomics/metaboData/), @Nutrimetabolomics. 
+Los datos con los que hemos tratado en esta PEC son de carácter metabolómico y en nuestro caso son accesibles desde el repositorio proporcionado [github](https://github.com/nutrimetabolomics/metaboData/), @Nutrimetabolomics. También pueden ser accedidos desde el estudio publicado por  @Broadhurst. 
 
-Se ha seleccionaremos un dataset y se ha creado una estructura de datos del tipo **expressionSet** pero en este caso utilizado la clase **[SummarizedExperiment](https://bioconductor.org/packages/release/bioc/vignettes/SummarizedExperiment/inst/doc/SummarizedExperiment.html)**, @Morgan_a, la cual contiene una matriz de datos y una tabla con información sobre las covariables y otras aspectos del experimento. Todo ello usando el lenguaje de programación R y git como gestor de control de versiones. 
+Se ha seleccionado un dataset y se ha creado una estructura de datos del tipo **expressionSet** pero en este caso utilizado la clase **[SummarizedExperiment](https://bioconductor.org/packages/release/bioc/vignettes/SummarizedExperiment/inst/doc/SummarizedExperiment.html)**, @Morgan_a, la cual contiene una matriz de datos, una tabla con información sobre las covariables y otros aspectos del experimento. Todo ello usando el lenguaje de programación R y git como gestor de control de versiones. 
 
 La construcción y exploración del objeto **SummarizedExperiment** se ha llevado a cabo principalmente siguiendo las plantillas de los casos de estudio compartidos en el aula así como la ayuda oficial de la clase **SummarizedExperiment**:
 
@@ -84,13 +85,13 @@ La construcción y exploración del objeto **SummarizedExperiment** se ha llevad
 - [Omics_Data_Analysis-Case_Study_0-Introduction_to_BioC](https://github.com/ASPteaching/Omics_Data_Analysis-Case_Study_0-Introduction_to_BioC), @Sanchez_b.
 - [SummarizedExperiment for Coordinating Experimental Assays, Samples, and Regions of Interest](https://bioconductor.org/packages/release/bioc/vignettes/SummarizedExperiment/inst/doc/SummarizedExperiment.html), @Morgan_a.
 
-La exploración del dataset generado ha consistido en la obtención de una visión general del mismo en la línea de lo que hemos visto en las actividades vía: 
+La exploración del objeto generado ha consistido en la obtención de una visión general del mismo en la línea de lo que hemos visto en las actividades vía: 
 
 - Análisis univariante vía boxplots y/o histogramas para ver la forma general de los mismos. 
 
 - Análisis multivariante vía análisis de componentes Principales (PCA) y agrupamiento jerárquico, y a así ver si los grupos se relacionan entre ellos.
 
-El código R empleado en esta PEC es accesible desde el repositorio github creado al efecto (ver anexo para su acceso). Se han ocultado los códigos de todos los puntos de este informe salvo resultados relevantes mediante la opción knitr::purl(), de esta manera se ha extraído el código R generado del informe ("knitr::purl("ADO-PEC1-Res.Rmd")") y se ha creado el archivo "ADO-PEC1-Res.R" accesible en github. 
+El código R empleado en esta PEC es accesible desde el repositorio github creado al efecto (ver anexo para su acceso). Se han ocultado los códigos de todos los puntos de este informe salvo resultados relevantes mediante la opción knitr::purl(), de esta manera se ha extraído el código R generado del informe ("knitr::purl("ADO-PEC1-Res.Rmd")") y se ha creado el archivo "ADO-PEC1-Res.R" accesible en el repositorio github. 
 
 # Reasultados
 
@@ -122,7 +123,7 @@ data <- read_xlsx(temp_file)
 unlink(temp_file)
 ```
 
-```{r}
+```{r, results=TRUE}
 # Mostramos las primeras filas para confirmar
 data %>%
     kableExtra::kable(format = "latex", booktabs = TRUE) %>%
@@ -148,7 +149,7 @@ Localizamos el archivo en repositorio, el cual se encuentra en la ruta:
 
 - Datasets/2023-CIMCBTutorial/GastricCancer_NMR.xlsx
 
-y lo descargamos, con R, a nuestra área de trabajo del proyecto en RStudio para su posterior lectura y análisis.
+Lo descargamos, con R, a nuestra área de trabajo del proyecto en RStudio para su posterior lectura y análisis.
 
 ```{r}
 # Obtenemos la ruta raw del archivo
@@ -161,7 +162,7 @@ destfile <- "F:\\Cursos\\UOC Master Bio Inf. Est\\M0.157 - UOC - Analisis de dat
 response <- GET(url, write_disk(destfile, overwrite = TRUE))
 ```
 
-Verificamos, haciendo uso de R, que hemos descargado correctamente el fichero "GastricCancer_NMR.xlsx" (mostramos las primeras filas).
+Verificamos que hemos descargado correctamente el fichero "GastricCancer_NMR.xlsx" mostrando las primeras filas.
 
 ```{r}
 # Verificamos que se descargó correctamente
@@ -175,7 +176,9 @@ if (status_code(response) == 200) {
 head(read_xlsx(destfile))
 ```
 
-### Daset descargado - Estudio de origen
+### Daset descargado - Estudio de referencia
+
+Antes de proseguir con el análisis se ha indagado de donde provienen los datos y cual es el objeto original del estudio. 
 
 Estos datos que hemos seleccionado viene del estudio publicado por @Broadhurst, donde se  investiga si el cáncer gástrico (GC) tiene un perfil metabolómico urinario distintivo en comparación con enfermedades gástricas benignas (BN) y personas sanas (HE). Para ello, analizaron muestras de orina de 43 pacientes con GC, 40 con BN y 40 personas sanas HE utilizando espectroscopía de resonancia magnética nuclear de protón (1H-NMR).
 
@@ -235,10 +238,9 @@ class(peak)
 - "Perc_missing" indica qué porcentaje de muestras no contienen una medición para este metabolito (datos faltantes).
 - "QC_RSD" es una puntuación de calidad que representa la variación en las mediciones de este metabolito en todas las muestras.
 
-
 ### Preparación de assay (matriz de datos de expresión)
 
-Para crear el objeto, es necesario que los datos estén en formato de matriz y DataFrame con lo que tenemos que convertir "data" matriz y "peak" ya esta en el formato adecuado. 
+Para crear el objeto, es necesario que los datos estén en formato de matriz y DataFrame con lo que tenemos que convertir "data" matriz. Por el contrario "peak" ya esta en el formato adecuado. 
 
 Extraemos los valores de las mediciones (M1, M2, etc.) de "data" y utilizamos "SampleID" como nombres de filas.
 
@@ -259,8 +261,8 @@ assay_data[1:6,1:6]
 
 Obtenemos los siguientes datos:
 
-- colData: Usa de peak "Name", "Label", "Perc_missing" y "QC_RSD". 
-- rowData: Usa de data "SampleID", "SampleType" y "Class".
+- colData: Usa de peak >>>> "Name", "Label", "Perc_missing" y "QC_RSD". 
+- rowData: Usa de data >>>> "SampleID", "SampleType" y "Class".
 
 Mostramos los primeros elementos de cada elemento:
 
@@ -316,13 +318,21 @@ head(colData(se))
 head(rowData(se))
 ```
 
-Los metadatos a nivel de experimento describen información general sobre el experimento, como el experimentador, laboratorio, título, etc. Estos datos se añadirán a metadata su origen puede encontrarse en, @cimcb, secciones 2.1 y 2.2.
+Los metadatos a nivel de experimento describen información general sobre el experimento, como el experimentador, laboratorio, título, etc. Estos datos se añadirán a metadata su origen puede encontrarse en, @cimcb, secciones 2.1 y 2.2, y ademas en, @Broadhurst.
 
 Estos son, a nivel de experimento, los metadatos del objeto generado (ver código para mas detalles):
 
 ```{r}
 # Creamos una lista para los metadatos del experimento
 metadata_experimento <- list(
+  Project_ID="PR000699",
+  Project_DOI="doi: 10.21228/M8B10B",
+  Project_Title="1H-NMR urinary metabolomic profiling for diagnosis of gastric cancer",
+  Institute="University of Alberta",
+  Autor="Broadhurst,	David",
+  Address="270 Joondalup Drive, Joondalup, WA 6027, AUSTRALIA",
+  Email="d.broadhurst@ecu.edu.au",
+  Project_Summary="Background: Metabolomics has shown promise in gastric cancer (GC) detection. This research sought to identify whether GC has a unique urinary metabolomic profile compared with benign gastric disease (BN) and healthy (HE) patients. Methods: Urine from 43 GC, 40 BN, and 40 matched HE patients was analysed using 1H nuclear magnetic resonance (1H-NMR) spectroscopy, generating 77 reproducible metabolites (QC-RSD <25%). Univariate and multivariate (MVA) statistics were employed. A parsimonious biomarker profile of GC vs HE was investigated using LASSO regularised logistic regression (LASSO-LR). Model performance was assessed using Receiver Operating Characteristic (ROC) curves. Results: GC displayed a clear discriminatory biomarker profile; the BN profile overlapped with GC and HE. LASSO-LR identified three discriminatory metabolites: 2-hydroxyisobutyrate, 3-indoxylsulfate, and alanine, which produced a discriminatory model with an area under the ROC of 0.95. Conclusions: GC patients have a distinct urinary metabolite profile. This study shows clinical potential for metabolic profiling for early GC diagnosis.",
   Data_Sample="Las columnas M1...M149 describen las concentraciones de metabolitos.",
   Data_SampleType="La columna SampleType indica si la muestra era un control de calidad combinado o  una muestra de estudio.",
   Data_Class="La clase de columna Class indica el resultado clínico observado para ese individuo: GC = cáncer gástrico, BN = tumor benigno, HE = control sano.",
@@ -365,7 +375,6 @@ if (file.exists("F:\\Cursos\\UOC Master Bio Inf. Est\\M0.157 - UOC - Analisis de
 } else {
   print("Ha ocurrido un error al guardar el archivo.")
 }
-str(se)
 ```
 
 Procedemos a cárgalo y mostrarlo:
@@ -417,6 +426,8 @@ peak_Clean[,2]
 
 Este paso nos sirve para ver una de las propiedades de este tipo de objetos, que es que cuando cambia algo (numero de filas o columnas) este cambio se replica a las demás partes del objeto sin necesidad de hacer el cambio manualmente.  
 
+Vemos como las dimensiones han cambiado en assay, colData y rowData manteniendo su sincronía.
+
 ```{r}
 # Obtenemos los nombres de las muestras a mantener
 samples_a_mantener <- peak_Clean$Name
@@ -449,12 +460,14 @@ boxplot((assay(se_filtrado)),
         las = 2, col = "lightblue")
 ```
 
+**Importante**
+
 Los datos al ser asimétricos en varios de los "samples", sugiere que puede tener
 sentido trabajar con los mismos datos en escala logarítmica.
 
 ### Histograma
 
-Observamos la distribución de frecuencias "assay" y "colData" para ver cómo se distribuyen los valores de una variable (colData) y la matrz (assay). 
+Observamos la distribución de frecuencias "assay" y "colData" para ver cómo se distribuyen los valores de las variables de colData (Perc_missing y QC_RSD) y la matriz (assay). 
 
 En en le caso del assay vemos como su distribución es simétrica, en colData_Perc_missing parace que tenemos un sesgo negativo (a la izquierda) donde la cola larga está en el lado izquierdo indicandonos que la mayoría de los valores son altos, pero hay algunos más bajos y finalmente colData_QC_RSD que tiene un sesgo positivo (a la derecha) donde la cola larga (lado derecho) indica que la mayoría de los valores bajos son pocos y los altos son más abundantes.
 
@@ -481,7 +494,7 @@ hist(log(colData(se_filtrado)$QC_RSD),
 
 Un boxplot (diagrama de caja y bigotes) es una herramienta gráfica que permite visualizar la distribución, simetría, dispersión y posibles valores atípicos en un conjunto de datos permitiendo obtener una visión rápida y detallada de la distribución de los datos.
 
-En nuestro caso si las cajas son muy amplias, la expresión génica indica que tiene mucha variabilidad y vemos que este no es el caso. También vemos que los bigotes superiores son son excesivamente largos, el caso contrario nos indicaría que algunos genes tienen niveles de expresión más altos de lo habitual. Como punto final si que vemos como en alguna expresiones los puntos fuera de los bigotes (outliers) podrían ser genes con expresión particularmente alta o baja y merecen su revisión para ver si estos son errores o resultados reales importantes.
+En nuestro caso si las cajas son muy amplias, la expresión génica indica que tiene mucha variabilidad y vemos que este no es el caso. También vemos que los bigotes superiores no son excesivamente largos, el caso contrario nos indicaría que algunos genes tienen niveles de expresión más altos de lo habitual. Como punto final si que vemos como en alguna expresiones los puntos fuera de los bigotes (outliers) podrían ser genes con expresión particularmente alta o baja y merecen su revisión para ver si estos son errores o resultados reales importantes.
 
 ```{r}
 # Boxplot 
@@ -566,9 +579,11 @@ ggplot(pca_df, aes(x = PC1, y = PC2, color = Class)) +
   geom_point(size = 3) +
   labs(title = "PCA de Expresión Génica", 
        x = paste0("PC1 (", var_explicada_df[1], "% de varianza)"),
-       y = paste0("PC2 (", var_explicada_df[2], "% de varianza)"))
-+ theme_minimal()
+       y = paste0("PC2 (", var_explicada_df[2], "% de varianza)")) +
+ theme_minimal()
 
+# Mostramos la varianza explicada
+paste0("PC1 (", var_explicada_df[1], "% de la varianza) - PC2 (", var_explicada_df[2], "% de la varianza)")
 summary(pca)
 ```
 
@@ -598,23 +613,35 @@ plot(hc, main = "Dendrograma de Clustering Jerárquico")
 
 # Discusión
 
-El análisis exploratorio realizado, tras imputar, limpiar y tomar logaritmos sobre los datos finales, ha puesto de manifiesto que existen mas dos fuentes de variación distintas ya que las PC1 y PC explican no mas del 45% de la variabilidad. 
+El análisis exploratorio realizado, tras imputar, limpiar y tomar logaritmos sobre los datos finales, ha puesto de manifiesto que existen mas dos fuentes de variación distintas ya que las PC1 y PC2 explican no mas del 44% de la variabilidad. 
 
-Ademas en el las visualizaciones no se muestran gurpos diferenciadores que pudieran a ayudar a identificar uno o unos metabolitos mas realcionados con el cáncer gástrico (GC). 
+Ademas en las visualizaciones no se muestran grupos diferenciadores que pudieran a ayudar a identificar uno o unos metabolitos mas relacionados con el cáncer gástrico (GC). 
 
-En lo que tiene que ver con la agrupación en el PCA, la clase "QC" esta perfectamente agrupada en un pequeño espacio y la clase "GC" es la que se puede agrupar en un area pero que también se mezcla con otras clases en otras areas.
+En lo que tiene que ver con la agrupación en el PCA, la clase "QC" esta perfectamente agrupada en un pequeño espacio y la clase "GC" es la que se puede agrupar en un área separada y amplia pero que también se mezcla con otras clases en otras áreas.
 
 En cuanto a la relación entre muestras las distancias entre los puntos en el gráfico de PCA nos indica la similitud o disimilitud entre estas, donde muestras cercanas tienen perfiles de expresión génica similares y las que están más separadas son diferentes. Como vemos "QC" es la única similar. 
 
-Los outliers si que están relacionados con la clase "GC".
+Vemos outliers si que están relacionados con las clase "GC" y "BN".
 
-Como conclusión entendemos que habría que seguir con el estudio de los datos para ver se pueden extraer conclusiones mas solidas.  
+Como conclusión entendemos que habría que seguir con el estudio y aplicar mas tecnicas, como las descritas en @Broadhurst, para poder llegar a las conclusiones descritas en ese estudio.  
 
 # Apendice 
 
-URL del repositorio. El repositorio de esta PEC con todos los entregables solicitados se en: 
+## URL repositorio github 
 
-https://github.com/arodriguezsans/Rodriguez-Sans-Alvaro-PEC1
+El repositorio de esta PEC con todos los entregables solicitados se en: 
+
+**https://github.com/arodriguezsans/Rodriguez-Sans-Alvaro-PEC1**
+
+En este repositorio se encuentran los siguientes ficheros de interes:
+
+- ADO-PEC1-Res.pdf (informe pdf de la pec)
+- ADO-PEC1-Res.R (código R)
+- ADO-PEC1-Res.Rmd (informe rmarkdown de la pec)
+- ADOreferences-Res.bib (referencia bibliográficas usadas)
+- GastricCancer_NMR.Rda (fichero .Rda solicitado)
+- GastricCancer_NMR.xlsx (fichero excel descargado del repositorio de referencia)
+
 
 ```{r,echo=FALSE, file="ADO-PEC1-Res.R", eval=FALSE}
 
