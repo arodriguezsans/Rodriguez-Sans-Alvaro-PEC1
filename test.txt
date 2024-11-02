@@ -1,4 +1,0 @@
-ojo hazlo antes para poder sync bien desde el terminal...
-
-git config --global user.name "tu user de git"
-git config --global user.email "tu email de git"
