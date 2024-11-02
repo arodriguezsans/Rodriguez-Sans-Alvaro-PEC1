@@ -1,4 +1,4 @@
-## ----setup, include=FALSE----------------------------------------
+## ----setup, include=FALSE-------------------------------------------------------------------------
 library(knitr)
 library(rmdformats)
 
@@ -14,11 +14,12 @@ opts_chunk$set(echo=FALSE,
 opts_knit$set(width=75)
 
 
-## ----------------------------------------------------------------
+## -------------------------------------------------------------------------------------------------
 # Instalamos las librerías necesarias para esta PEC
 if (!require("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
   BiocManager::install()
+  BiocManager::install("impute")  
 if (!require("httr", quietly = TRUE))
   install.packages("httr")
 if (!require("readxl", quietly = TRUE))
@@ -31,11 +32,11 @@ if (!require("pheatmap", quietly = TRUE))
   install.packages("pheatmap")
 
 
-
-## ----------------------------------------------------------------
+## ----results=FALSE--------------------------------------------------------------------------------
 # Cargamos las librerías necesarias
 library(httr)
 library(readxl)
+library(dplyr)
 
 # URL directa del archivo en GitHub
 url <- "https://raw.githubusercontent.com/nutrimetabolomics/metaboData/main/Data_Catalog.xlsx"
@@ -47,14 +48,22 @@ GET(url, write_disk(temp_file, overwrite = TRUE))
 # Leemos el archivo .xlsx desde el archivo temporal
 data <- read_xlsx(temp_file)
 
-# Mostramos las primeras filas para confirmar
-head(data)
-
 # Eliminamos el archivo temporal (opcional)
 unlink(temp_file)
 
 
-## ----------------------------------------------------------------
+## ----results=TRUE---------------------------------------------------------------------------------
+# Mostramos las primeras filas para confirmar
+data %>%
+    kableExtra::kable(format = "latex", booktabs = TRUE) %>%
+    kableExtra::kable_styling(full_width = TRUE) %>% 
+    kableExtra::column_spec(1, width = "8em") %>% 
+    kableExtra::column_spec(2, width = "3em") %>% 
+    kableExtra::column_spec(3, width = "3em") %>% 
+    kableExtra::column_spec(4, width = "27em")
+
+
+## -------------------------------------------------------------------------------------------------
 # Seleccionamos y mostramos el dataset objetivo de análisis 
 set.seed (123)
 seleccion<- sample(1:nrow(data),1)
@@ -63,7 +72,7 @@ Dataset <- data[seleccion,1]
 Dataset
 
 
-## ----------------------------------------------------------------
+## -------------------------------------------------------------------------------------------------
 # Obtenemos la ruta raw del archivo
 url <- "https://raw.githubusercontent.com/nutrimetabolomics/metaboData/main/Datasets/2023-CIMCBTutorial/GastricCancer_NMR.xlsx"
 
@@ -74,7 +83,7 @@ destfile <- "F:\\Cursos\\UOC Master Bio Inf. Est\\M0.157 - UOC - Analisis de dat
 response <- GET(url, write_disk(destfile, overwrite = TRUE))
 
 
-## ----------------------------------------------------------------
+## -------------------------------------------------------------------------------------------------
 # Verificamos que se descargó correctamente
 if (status_code(response) == 200) {
   print("Archivo descargado correctamente.")
@@ -86,7 +95,7 @@ if (status_code(response) == 200) {
 head(read_xlsx(destfile))
 
 
-## ----------------------------------------------------------------
+## -------------------------------------------------------------------------------------------------
 # Cargamos la librería SummarizedExperiment
 library(SummarizedExperiment)
 
@@ -95,17 +104,17 @@ data <- read_excel("GastricCancer_NMR.xlsx", sheet = "Data")
 peak <- read_excel("GastricCancer_NMR.xlsx", sheet = "Peak")
 
 
-## ----------------------------------------------------------------
+## -------------------------------------------------------------------------------------------------
 head(data)
 class(data)
 
 
-## ----------------------------------------------------------------
+## -------------------------------------------------------------------------------------------------
 head(peak)
 class(peak)
 
 
-## ----------------------------------------------------------------
+## -------------------------------------------------------------------------------------------------
 # Configuramos la columna SampleID como nombres de filas
 rownames(data) <- data$SampleID
 nombres_filas <- rownames(data)
@@ -116,7 +125,7 @@ rownames(assay_data) <- nombres_filas
 assay_data[1:6,1:6]
 
 
-## ----------------------------------------------------------------
+## -------------------------------------------------------------------------------------------------
 # rowData (información de características)
 rowData <- data[, c("SampleID","SampleType","Class")]
 rownames(rowData) <- rowData$SampleID  
@@ -129,7 +138,7 @@ rownames(colData) <- colData$Name
 head(colData)
 
 
-## ----------------------------------------------------------------
+## -------------------------------------------------------------------------------------------------
 # Creamos el objeto `SummarizedExperiment`
 se <- SummarizedExperiment(
   assays = list(counts = assay_data),
@@ -140,7 +149,7 @@ se <- SummarizedExperiment(
 se
 
 
-## ----------------------------------------------------------------
+## -------------------------------------------------------------------------------------------------
 # Añadimos metadatos a rowData (información sobre los "genes")
 #rowData(se)$SampleType <- data[, c("SampleType")]
 #rowData(se)$Class <- data[, c("Class")]
@@ -155,9 +164,17 @@ head(colData(se))
 head(rowData(se))
 
 
-## ----------------------------------------------------------------
+## -------------------------------------------------------------------------------------------------
 # Creamos una lista para los metadatos del experimento
 metadata_experimento <- list(
+  Project_ID="PR000699",
+  Project_DOI="doi: 10.21228/M8B10B",
+  Project_Title="1H-NMR urinary metabolomic profiling for diagnosis of gastric cancer",
+  Institute="University of Alberta",
+  Autor="Broadhurst,	David",
+  Address="270 Joondalup Drive, Joondalup, WA 6027, AUSTRALIA",
+  Email="d.broadhurst@ecu.edu.au",
+  Project_Summary="Background: Metabolomics has shown promise in gastric cancer (GC) detection. This research sought to identify whether GC has a unique urinary metabolomic profile compared with benign gastric disease (BN) and healthy (HE) patients. Methods: Urine from 43 GC, 40 BN, and 40 matched HE patients was analysed using 1H nuclear magnetic resonance (1H-NMR) spectroscopy, generating 77 reproducible metabolites (QC-RSD <25%). Univariate and multivariate (MVA) statistics were employed. A parsimonious biomarker profile of GC vs HE was investigated using LASSO regularised logistic regression (LASSO-LR). Model performance was assessed using Receiver Operating Characteristic (ROC) curves. Results: GC displayed a clear discriminatory biomarker profile; the BN profile overlapped with GC and HE. LASSO-LR identified three discriminatory metabolites: 2-hydroxyisobutyrate, 3-indoxylsulfate, and alanine, which produced a discriminatory model with an area under the ROC of 0.95. Conclusions: GC patients have a distinct urinary metabolite profile. This study shows clinical potential for metabolic profiling for early GC diagnosis.",
   Data_Sample="Las columnas M1...M149 describen las concentraciones de metabolitos.",
   Data_SampleType="La columna SampleType indica si la muestra era un control de calidad combinado o  una muestra de estudio.",
   Data_Class="La clase de columna Class indica el resultado clínico observado para ese individuo: GC = cáncer gástrico, BN = tumor benigno, HE = control sano.",
@@ -177,6 +194,7 @@ for (i in 1:length(metadata(se))) {
 }
 colnames(infoDF) = c("Campo", "Descripción")
 
+# Cargamos la librería necesaria
 library(dplyr)
 
 infoDF %>%
@@ -185,7 +203,7 @@ infoDF %>%
     kableExtra::column_spec(1, width = "10em")
 
 
-## ----------------------------------------------------------------
+## -------------------------------------------------------------------------------------------------
 # Guardamos el objeto
 save(se, file = "GastricCancer_NMR.Rda")
 
@@ -196,27 +214,28 @@ if (file.exists("F:\\Cursos\\UOC Master Bio Inf. Est\\M0.157 - UOC - Analisis de
   print("Ha ocurrido un error al guardar el archivo.")
 }
 
+
+## -------------------------------------------------------------------------------------------------
 # Cargamos el archivo y verificamos el contenido
 load("F:\\Cursos\\UOC Master Bio Inf. Est\\M0.157 - UOC - Analisis de datos Omicos\\Reto 1. Las ómicas (25_09_2024) a (6_11_2024)\\PEC1\\Repositorio_git\\Rodriguez-Sans-Alvaro-PEC1\\GastricCancer_NMR.Rda")
 head(se)
 str(se)
 
 
-## ----------------------------------------------------------------
+## -------------------------------------------------------------------------------------------------
 dim(assay_data) 
 length(assay_data)
 
 
-## ----------------------------------------------------------------
+## -------------------------------------------------------------------------------------------------
 sum(is.na(assay_data))
+
+
+## -------------------------------------------------------------------------------------------------
 length(assay_data[!is.na(assay_data)])
 
 
-## ----------------------------------------------------------------
-length(assay_data[!is.na(assay_data)])
-
-
-## ----------------------------------------------------------------
+## -------------------------------------------------------------------------------------------------
 # Extraemos los datos datos relevantes
 rsd <- peak$QC_RSD
 percMiss <- peak$Perc_missing
@@ -226,11 +245,10 @@ peak_Clean <- peak[(rsd < 20) & (percMiss < 10), ]
 
 # Mostramos cuantos datos limpios nos quedan
 print(paste0("Numero de 'peaks' de interes: ", nrow(peak_Clean)))
-
 peak_Clean[,2]
 
 
-## ----------------------------------------------------------------
+## -------------------------------------------------------------------------------------------------
 # Obtenemos los nombres de las muestras a mantener
 samples_a_mantener <- peak_Clean$Name
 
@@ -240,130 +258,131 @@ keep <- colnames(se) %in% samples_a_mantener
 # Creamos un subconjunto el SummarizedExperiment
 se_filtrado <- se[, keep]
 
-# Accediendo al assay
+# Accedemos a assay
 dim(assay(se_filtrado))  # Devuelve una matriz con los datos de expresión
 assay(se_filtrado)[1:6,1:6]
  
-# Accediendo al rowData
+# Accedemos a rowData
 dim(rowData(se_filtrado))
 head(rowData(se_filtrado))  # Devuelve un DataFrame con información sobre los genes
 
-# Accediendo al colData
+# Accedemos a colData
 dim(colData(se_filtrado))
 head(colData(se_filtrado))  # Devuelve un DataFrame con información sobre las muestras
 
 
-## ----------------------------------------------------------------
-library(SummarizedExperiment)
-# Suponiendo que tienes un SummarizedExperiment llamado 'se'
+## -------------------------------------------------------------------------------------------------
+boxplot((assay(se_filtrado)), 
+        main="Exp. génica por muestra", 
+        xlab="Muestra", ylab="Expresión",
+        las = 2, col = "lightblue")
 
-# Dimensiones
-dim(se_filtrado)
-dim(colData(se_filtrado))
 
-# Nombres de genes y muestras
-head(rownames(se_filtrado))
-head(colnames(se_filtrado))
-
-# Información sobre las muestras
-head(colData(se_filtrado))
-
-# Histograma de cuentas
+## -------------------------------------------------------------------------------------------------
+# Histograma 
+par(mfrow = c(1, 3))
 hist(log(assay(se_filtrado)),
      breaks=50, 
-     main="Histograma de valores de expresión", 
+     main="Valores de expresión", 
      xlab="Expresión", ylab="Frecuencia")
 
 hist(log(colData(se_filtrado)$Perc_missing), 
-     main="Histograma de Perc_missing entre muestras", 
+     breaks=10,
+     main="Perc_missing entre muestras", 
      xlab="Perc_missing", ylab="Frecuencia")
 
-hist(log(colData(se_filtrado)$QC_RSD), 
-     main="Histograma de Perc_missing entre muestras", 
-     xlab="Perc_missing", ylab="Frecuencia")
+hist(log(colData(se_filtrado)$QC_RSD),
+     breaks=10,
+     main="QC_RSD entre muestras", 
+     xlab="QC_RSD", ylab="Frecuencia")
 
-# Boxplot por grupo
+
+## -------------------------------------------------------------------------------------------------
+# Boxplot 
+par(mfrow = c(1, 3))
 boxplot(log(assay(se_filtrado)), 
-        main="Distribución de expresión génica por muestra", 
-        xlab="Muestra", ylab="Expresión")
-boxplot(log(colData(se_filtrado)$QC_RSD), 
-        main="Variabilidad de QC_RSD entre muestras", 
-        ylab="QC_RSD")
-boxplot(t(assay(se_filtrado)) ~ colData(se_filtrado)$Label, 
-        main="Expresión por Metabolito (Label)", 
-        xlab="Metabolito", ylab="Expresión")
-boxplot(t(assay(se_filtrado)) ~ colData(se_filtrado)$Label, 
-        main="Expresión por Metabolito (Label)", 
-        xlab="Metabolito", ylab="Expresión")
-boxplot(log((assay(se_filtrado))) ~ rowData(se_filtrado)$Class, 
-        main="Expresión por Clase", 
-        xlab="Clase", ylab="Expresión")
+        main="Exp. génica por muestra", 
+        xlab="Muestra", ylab="Expresión",
+        las = 2, col = "lightblue")
 
+boxplot(log(assay(se_filtrado)) ~ rowData(se_filtrado)$Class,
+        main="Exp. por Clase", 
+        xlab="Clase", ylab="Expresión",
+        las = 1, col = "lightblue")
+
+boxplot(t(log(assay(se_filtrado))) ~ colData(se_filtrado)$Label, 
+        main="Exp. por Metabolito (Label)", 
+        xlab="Metabolito", ylab="Expresión",
+        las = 2, col = "lightblue")
+
+
+## -------------------------------------------------------------------------------------------------
+par(mfrow = c(1, 2))
+boxplot((colData(se_filtrado)$Perc_missing), 
+        main="Perc_missing entre muestras", 
+        ylab="Perc_missing",
+        las = 2, col = "lightblue")
+
+boxplot((colData(se_filtrado)$QC_RSD), 
+        main="QC_RSD entre muestras", 
+        ylab="QC_RSD",
+        las = 2, col = "lightblue")
+
+
+
+## -------------------------------------------------------------------------------------------------
+# # Cargamos la librería necesaria
 # Heatmap
 library(pheatmap)
-pheatmap(assay(se_filtrado))
-
-# PCA
-pca <- prcomp(t(assay(se_filtrado)))
-summary(pca)
-plot(pca)
+pheatmap(log(assay(se_filtrado)))
 
 
-## ----------------------------------------------------------------
-# Cargar paquetes necesarios
+## -------------------------------------------------------------------------------------------------
+# # Cargamos las librerías necesarias
 library(ggplot2)
+library(impute)
 
-# Extraer la matriz de expresión y transponerla para tener muestras en filas
+# Extraemos la matriz de expresión y se transpone para tener muestras en filas
 expr_data <- t(assay(se_filtrado))
 
-BiocManager::install("impute")  # Instalar el paquete desde Bioconductor
-library(impute)
-# Imputar valores faltantes con el paquete impute
+# Imputamos valores faltantes con el paquete impute
 expr_data <- impute.knn(as.matrix(assay(se_filtrado)))$data
 
-# Realizar PCA
+# Realizamos el  PCA
 pca <- prcomp(expr_data, center = TRUE, scale. = TRUE)
 
-# Convertir resultados a un data frame para ggplot2
+# Convertimos los resultados a un dataframe para mostrar en ggplot2
 pca_df <- as.data.frame(pca$x)
-pca_df$Class <- rowData(se_filtrado)$Class  # Asumimos que quieres colorear por 'Class'
+pca_df$Class <- rowData(se_filtrado)$Class  
+
+# Calculamos el porcentaje de varianza explicada
+var_explicada <- (pca$sdev^2) / sum(pca$sdev^2) * 100
+var_explicada_df <- round(var_explicada[1:2], 2)  # Redondeamos los primeros dos componentes principales
 
 # Gráfico del PCA
 ggplot(pca_df, aes(x = PC1, y = PC2, color = Class)) +
   geom_point(size = 3) +
-  labs(title = "PCA de Expresión Génica", x = "PC1", y = "PC2") +
-  theme_minimal()
+  labs(title = "PCA de Expresión Génica", 
+       x = paste0("PC1 (", var_explicada_df[1], "% de varianza)"),
+       y = paste0("PC2 (", var_explicada_df[2], "% de varianza)")) +
+ theme_minimal()
+
+# Mostramos la varianza explicada
+paste0("PC1 (", var_explicada_df[1], "% de la varianza) - PC2 (", var_explicada_df[2], "% de la varianza)")
+summary(pca)
 
 
+## -------------------------------------------------------------------------------------------------
+# Calculamos la matriz de distancias
+dist_matrix <- dist(t(log(assay(se_filtrado))), method = "euclidean")
 
-## ----------------------------------------------------------------
-# Definir número de clusters
-set.seed(123)  # Para reproducibilidad
-k <- 3  # Puedes ajustar según la cantidad de grupos que quieras
+# Realizamos el agrupamiento jerárquico
+hc <- hclust(dist_matrix, method = "complete")
 
-# Aplicar k-means clustering
-kmeans_res <- kmeans(expr_data, centers = k)
-
-# Agregar clusters al DataFrame del PCA para visualizar
-pca_df$Cluster <- as.factor(kmeans_res$cluster)
-
-# Visualización de k-means en el PCA
-ggplot(pca_df, aes(x = PC1, y = PC2, color = Cluster)) +
-  geom_point(size = 3) +
-  labs(title = "K-means Clustering en el Espacio PCA", x = "PC1", y = "PC2") +
-  theme_minimal()
+# Visualizamos el dendrograma
+plot(hc, main = "Dendrograma de Clustering Jerárquico")
 
 
-## ----------------------------------------------------------------
-# Calcular distancias y realizar clustering jerárquico
-dist_matrix <- dist(expr_data)
-hc <- hclust(dist_matrix, method = "ward.D2")
-
-# Dendrograma
-plot(hc, labels = rowData(se_filtrado)$SampleID, main = "Dendrograma de Clustering Jerárquico", xlab = "", sub = "")
-
-
-
-## ----echo=TRUE, file="ADO-PEC1-Res.R", eval=FALSE----------------
+## ----echo=FALSE, file="ADO-PEC1-Res.R", eval=FALSE------------------------------------------------
 
 
